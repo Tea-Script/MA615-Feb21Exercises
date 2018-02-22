@@ -1,0 +1,82 @@
+---
+title: "Feb 21 Exercises"
+author: "Matthew D. CIaramitaro"
+date: "February 21, 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Exercises 10.5
+<h1>10.5.1</h1>
+We can tell if a dataframe is a tibble by printing it and seeing if it follows the print behavior of a tibble. If it prints more than 10 rows it is not a tibble. However, this method doesn't work for all cases.The function `is.tibble` below would work for all cases.
+```{r}
+df <- mtcars
+tb <- as.tibble(mtcars)
+print(is.tibble(df))
+print(is.tibble(tb))
+```
+<h1>10.5.2</h1>
+```{r}
+#first with the data.frame
+df <- data.frame(abc = 1, xyz = "a")
+df$x
+df[, "xyz"]
+df[, c("abc", "xyz")]
+#now with the tibble
+df <- as.tibble(data.frame(abc = 1, xyz = "a"))
+df$x
+df[, "xyz"]
+df[, c("abc", "xyz")]
+```
+The tibble doesn't have access to the same indexing keys as the data frame. We can no longer use the old methods to obtain the data by row/column name.
+Dataframes can be frustrating because unlike tibbles, they do not inform you that you accessed a column that doesn't exist and do partial matches like `df$x` yielding `df$xyz` in the above.
+
+<h1>10.5.3</h1>
+We can use piping or normal indexing to extract 
+```{r}
+var <- "mpg"
+#let's use tb from before
+tb[[var]]
+tb %>% .[[var]]
+```
+<h1>10.5.4</h1>
+Using the following dataframe we will answer some questions
+```{r}
+annoying <- tibble(
+  `1` = 1:10,
+  `2` = `1` * 2 + rnorm(length(`1`))
+)
+```
+<h2>10.5.4.1</h2>
+Extract the variable 1
+```{r}
+annoying %>% .[["1"]]
+```
+<h2>10.5.4.2</h2>
+```{r}
+plot(x = annoying %>% .[["1"]], y = annoying %>% .[["2"]], main="1 vs 2 scatterplot", type="p", xlab = "1", ylab = "2")
+```
+<h2>10.5.4.3</h2>
+We use the add column function
+```{r}
+annoying <- add_column(annoying, "3"= annoying[["2"]]/annoying[["1"]])
+annoying
+```
+<h2>10.5.4.4</h2>
+```{r}
+annoying <- rename(annoying, "one" = "1", "two" = "2", "three" = "3")
+annoying
+```
+<h1>10.5.5</h1>
+This tidies the data, giving it two columns, one for variable and one for data.
+
+<h1>10.5.6</h1>
+`options(tibble.width = n)` will make the number of columns printed n. If n is `Inf` all columns will be printed.
+
+##Exercises 12.6.1
+
+
