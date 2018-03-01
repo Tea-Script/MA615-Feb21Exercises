@@ -1,0 +1,100 @@
+---
+title: "TidyR Article Exercises"
+author: "Matthew D. Ciaramitaro"
+date: "February 21, 2018"
+output: pdf_document
+---
+
+##Tidy Data
+<h2>Converting Table 4 to Table 6</h2>
+
+```{r}
+
+library(foreign)
+library(stringr)
+library(plyr)
+library(reshape2)
+#knitting errors
+#library(tidyverse)
+suppressPackageStartupMessages(library(tidyverse))
+
+source("xtable.r")
+# Data from http://pewforum.org/Datasets/Dataset-Download.aspx
+
+# Load data -----------------------------------------------------------------
+
+pew <- read.spss("pew.sav")
+pew <- as.data.frame(pew)
+
+
+religion <- pew[c("q16", "reltrad", "income")]
+religion$reltrad <- as.character(religion$reltrad)
+religion$reltrad <- str_replace(religion$reltrad, " Churches", "")
+religion$reltrad <- str_replace(religion$reltrad, " Protestant", " Prot")
+religion$reltrad[religion$q16 == " Atheist (do not believe in God) "] <- "Atheist"
+religion$reltrad[religion$q16 == " Agnostic (not sure if there is a God) "] <- "Agnostic"
+religion$reltrad <- str_trim(religion$reltrad)
+religion$reltrad <- str_replace_all(religion$reltrad, " \\(.*?\\)", "")
+
+religion$income <- c("Less than $10,000" = "<$10k", 
+  "10 to under $20,000" = "$10-20k", 
+  "20 to under $30,000" = "$20-30k", 
+  "30 to under $40,000" = "$30-40k", 
+  "40 to under $50,000" = "$40-50k", 
+  "50 to under $75,000" = "$50-75k",
+  "75 to under $100,000" = "$75-100k", 
+  "100 to under $150,000" = "$100-150k", 
+  "$150,000 or more" = ">150k", 
+  "Don't know/Refused (VOL)" = "Don't know/refused")[religion$income]
+
+religion$income <- factor(religion$income, levels = c("<$10k", "$10-20k", "$20-30k", "$30-40k", "$40-50k", "$50-75k", 
+  "$75-100k", "$100-150k", ">150k", "Don't know/refused"))
+raw <- religion %>%  select(religion = q16, income)
+head(raw)
+raw <- raw %>% 
+  group_by(.dots=c("religion", "income")) %>% 
+  summarize(Number = n()) %>% 
+  spread(key = income, value = Number) %>% 
+  arrange(religion)
+# Convert into the form in which I originally saw it -------------------------
+
+#BEGIN ASSIGNMENT
+table4 <- raw[1:10, 1:7]
+head(table4,10)
+```
+At this point we have the correct starting table. Now we will use diplyr and tidyr to tidy the table to be the same as table 6.
+
+```{r}
+table6 <- table4 %>%   gather(key = "income",value = "freq", 2:7)
+table6 <- table6 %>% arrange(religion) 
+head(table6,10)
+```
+
+So now we have completed the table as table 6.
+
+##Converting Table 7 to table 8
+
+
+```{r}
+raw <- read_csv("billboard.csv")
+head(raw)
+table7 <- raw %>% #getraw data
+          select(year, artist=artist.inverted,track, time, date.entered, starts_with("x")) %>% #grab needed columns
+          arrange(artist) #sort table
+head(table7,10)
+```
+Now table 7 is formatted correctly
+
+```{r}
+table8 <- table7  %>% gather(key="week", value = "rank", -year, -artist, -track, -time, -date.entered) %>% 
+         select(year, artist, time, track, date = date.entered, week, rank )
+head(table8)
+table8 <- table8 %>% arrange(track) %>% 
+         filter(!is.na(rank)) %>%
+         mutate(week = as.integer(str_extract(week, "[0-9]+"))) %>%  
+         arrange(artist, track) %>% 
+         mutate(date = date + (week-1)*7 ) %>% 
+         mutate(rank = as.integer(rank))
+options(tibble.print_max = 15)
+head(table8, 15)
+```

@@ -1,6 +1,6 @@
 ---
 title: "Feb 21 Exercises"
-author: "Matthew D. CIaramitaro"
+author: "Matthew D. Ciaramitaro"
 date: "February 21, 2018"
 output: pdf_document
 ---
